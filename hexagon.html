@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hexagon</title>
+
+    <style>
+        path {
+            stroke: #000;
+            stroke-width: 3px;
+            stroke-opacity: 1;
+            fill: none;
+        }
+    </style>
+</head>
+<body>
+
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script>
+
+    class Svg {
+        static height = 500;
+        static width = 960;
+        static svg = d3.select('body').append('svg')
+                        .attr('width', this.width)
+                        .attr('height', this.height)
+                        .attr('overflow', 'hidden');
+    }
+
+    class Hexagon {
+        // Assumes center is at (0,0)
+        points = [];
+        // Define how the line between the points should look
+        lineFunction = d3.line()
+                            .x(function(d) { return d.x; })
+                            .y(function(d) {return d.y; });
+        hexagon;
+
+        constructor(container, sideLength) {
+            this.addPoints(sideLength);
+            this.hexagon = container.append("path")
+                .attr("d", this.lineFunction(this.points));
+        }
+
+        updatePoints(sideLength) {
+            this.points = [];
+            this.addPoints(sideLength);
+            this.hexagon.attr("d", this.lineFunction(this.points));
+        }
+
+        addPoints(sideLength) {
+            const angle = Math.PI/3;
+            // Calculate the 6 points
+            this.points.push({x: sideLength/2, y: -sideLength*Math.sin(angle)});
+            this.points.push({x: sideLength, y: 0});
+            this.points.push({x: sideLength/2, y: sideLength*Math.sin(angle)});
+            this.points.push({x: -sideLength/2, y: sideLength*Math.sin(angle)});
+            this.points.push({x: -sideLength, y: 0});
+            this.points.push({x: -sideLength/2, y: -sideLength*Math.sin(angle)});
+            // to close the hexagon nicely
+            this.points.push(this.points[0]);
+            this.points.push(this.points[1]);
+        }
+    }
+
+    let g = Svg.svg.append('g')
+        .attr('transform', 'translate(' + Svg.width/2 + ',' + Svg.height/2 + ')');
+
+    const sideLength = 100;
+    hexagon = new Hexagon(g, sideLength);
+    d3.timer(function(elapsed) {
+        const factor = 50;
+        let shift = (elapsed/factor) % sideLength;
+        hexagon.updatePoints(sideLength - shift);
+    })
+
+
+</script>
+
+</body>
+</html>
