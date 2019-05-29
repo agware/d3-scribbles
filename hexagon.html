@@ -8,7 +8,6 @@
         path {
             stroke: #000;
             stroke-width: 3px;
-            stroke-opacity: 1;
             fill: none;
         }
     </style>
@@ -34,44 +33,74 @@
         lineFunction = d3.line()
                             .x(function(d) { return d.x; })
                             .y(function(d) {return d.y; });
-        hexagon;
+        path;
 
         constructor(container, sideLength) {
             this.addPoints(sideLength);
-            this.hexagon = container.append("path")
+            this.path = container.append("path")
                 .attr("d", this.lineFunction(this.points));
         }
 
-        updatePoints(sideLength) {
+        updatePoints(sideLength, opacity) {
             this.points = [];
-            this.addPoints(sideLength);
-            this.hexagon.attr("d", this.lineFunction(this.points));
+            this.addPoints(sideLength, opacity);
+            this.path.attr("d", this.lineFunction(this.points))
+                .attr("stroke-opacity", opacity);
         }
 
         addPoints(sideLength) {
             const angle = Math.PI/3;
+            const yShift = sideLength*Math.sin(angle);
+
             // Calculate the 6 points
-            this.points.push({x: sideLength/2, y: -sideLength*Math.sin(angle)});
+            this.points.push({x: sideLength/2, y: -yShift});
             this.points.push({x: sideLength, y: 0});
-            this.points.push({x: sideLength/2, y: sideLength*Math.sin(angle)});
-            this.points.push({x: -sideLength/2, y: sideLength*Math.sin(angle)});
+            this.points.push({x: sideLength/2, y: yShift});
+            this.points.push({x: -sideLength/2, y: yShift});
             this.points.push({x: -sideLength, y: 0});
-            this.points.push({x: -sideLength/2, y: -sideLength*Math.sin(angle)});
-            // to close the hexagon nicely
+            this.points.push({x: -sideLength/2, y: -yShift});
+
+            // to close the path nicely
             this.points.push(this.points[0]);
             this.points.push(this.points[1]);
         }
     }
 
-    let g = Svg.svg.append('g')
-        .attr('transform', 'translate(' + Svg.width/2 + ',' + Svg.height/2 + ')');
+    class Hexagons {
+        defaultSideLength;
+        hexagons = [];
+        offsets = [];
+        constructor(container, sideLength, numHexagons) {
+            this.defaultSideLength = sideLength;
 
-    const sideLength = 100;
-    hexagon = new Hexagon(g, sideLength);
+            const offset = sideLength/numHexagons;
+            for(let i = 0; i < numHexagons; i++) {
+                this.offsets.push(i*offset);
+                this.hexagons.push(new Hexagon(container, sideLength - this.offsets[i]));
+            }
+        }
+
+        shiftHexagons(elapsed) {
+            for(let i = 0; i < this.hexagons.length; i++) {
+                let shift = (elapsed + this.offsets[i]) % this.defaultSideLength;
+                let currSideLength = this.defaultSideLength - shift;
+                this.hexagons[i].updatePoints(currSideLength, 1 - currSideLength/this.defaultSideLength);
+            }
+        }
+    }
+
+    const translate = 'translate(' + Svg.width/2 + ',' + Svg.height/2 + ')';
+    let g = Svg.svg.append('g')
+        .attr('transform', translate);
+
+    const sideLength = 200;
+    const numHexagons = 5;
+    hexagons = new Hexagons(g, sideLength, numHexagons);
     d3.timer(function(elapsed) {
-        const factor = 50;
-        let shift = (elapsed/factor) % sideLength;
-        hexagon.updatePoints(sideLength - shift);
+        const factor = 25;
+        let shift = elapsed/factor;
+        g.attr('transform', translate + 'rotate(' + shift + ')');
+        hexagons.shiftHexagons(shift);
     })
 
 
