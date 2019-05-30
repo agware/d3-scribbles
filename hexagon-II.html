@@ -6,14 +6,14 @@
 
     <style>
         path {
-            stroke: #fff;
-            stroke-width: 3px;
+            stroke-width: 5px;
             fill: none;
         }
 
         svg {
             background-color: black;
         }
+
     </style>
 </head>
 <body>
@@ -25,18 +25,19 @@
         static height = 500;
         static width = 960;
         static svg = d3.select("body").append("svg")
-                        .attr("width", this.width)
-                        .attr("height", this.height)
-                        .attr("overflow", "hidden");
+            .attr("width", this.width)
+            .attr("height", this.height)
+            .attr("overflow", "hidden");
     }
 
+    // A single shrinking hexagon
     class Hexagon {
         // Assumes center is at (0,0)
         points = [];
         // Define how the line between the points should look
         lineFunction = d3.line()
-                            .x(function(d) { return d.x; })
-                            .y(function(d) {return d.y; });
+            .x(function(d) { return d.x; })
+            .y(function(d) {return d.y; });
         path;
 
         constructor(container, sideLength) {
@@ -49,7 +50,7 @@
             this.points = [];
             this.addPoints(sideLength, opacity);
             this.path.attr("d", this.lineFunction(this.points))
-                .attr("stroke-opacity", opacity);
+                .attr("stroke", d3.rgb(255*opacity*(2/3), 0, 255*opacity));
         }
 
         addPoints(sideLength) {
@@ -70,6 +71,7 @@
         }
     }
 
+    // Holds the group of hexagons all shrinking to the same centre
     class Hexagons {
         defaultSideLength;
         hexagons = [];
@@ -94,23 +96,54 @@
         }
     }
 
-    // Setup the animation
-    const translate = 'translate(' + Svg.width/2 + ',' + Svg.height/2 + ')';
-    let g = Svg.svg.append('g')
-        .attr('transform', translate);
+    function generateContainers(base, sideLength) {
+        let containers = [];
+        containers.push(base.append('g'));
+        containers.push(base.append('g')
+            .attr('transform', 'rotate(30)'));
 
-    const sideLength = 200;
-    const numHexagons = 5;
-    hexagons = new Hexagons(g, sideLength, numHexagons);
+        // inner circle
+        for(let i = 0; i < 6; i++) {
+            let degrees = 60*i;
+            // inner circle
+            containers.push(
+                base.append('g')
+                    .attr('transform', 'rotate(' + degrees + ') translate(' + sideLength*2 + ',0)')
+            );
+            containers.push(
+                base.append('g')
+                    .attr('transform', 'rotate(' + degrees + ') translate(' + sideLength*2 + ',0) rotate(30)')
+            )
+        }
+
+        return containers;
+    }
+
+
+    // Set up the base on which the animation will be drawn
+    const baseTranslate = 'translate(' + Svg.width/2 + ',' + Svg.height/2 + ')';
+    let base = Svg.svg.append('g')
+        .attr('transform', baseTranslate);
+
+    // Set up the g for each set of hexagons
+    const sideLength = 180;
+    let containers = generateContainers(base, sideLength);
+
+    const numHexagons = 6;
+    let hexagons = [];
+    for(let i = 0; i < containers.length; i++) {
+        hexagons.push(new Hexagons(containers[i], sideLength, numHexagons));
+    }
 
     // Run the animation
     d3.timer(function(elapsed) {
-        const factor = 25;
+        const factor = 30;
         let shift = elapsed/factor;
-        g.attr('transform', translate + 'rotate(' + shift + ')');
-        hexagons.shiftHexagons(shift);
+        base.attr('transform', baseTranslate + 'rotate(' + shift + ')');
+        for(let i = 0; i < hexagons.length; i++) {
+            hexagons[i].shiftHexagons(shift);
+        }
     })
-
 
 </script>
 
