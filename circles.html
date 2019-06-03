@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <meta charset="UTF-8">
+    <title>Hexagon</title>
+
+    <style>
+        path {
+            stroke-width: 5px;
+            fill: none;
+            stroke: black;
+        }
+    </style>
+
+</head>
+<body>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script>
+
+    // Create the canvas for the animation
+    class Svg {
+        static height = 500;
+        static width = 960;
+        static svg = d3.select("body").append("svg")
+            .attr("width", this.width)
+            .attr("height", this.height)
+            .attr("overflow", "hidden");
+    }
+
+    // The circles which will be drawn
+    class Circle {
+        static radius = 50;
+        // generates the path string
+        arc = d3.arc()
+            .innerRadius(Circle.radius)
+            .outerRadius(Circle.radius)
+            .startAngle(0)
+            .endAngle(0);
+        // the g on which the path is drawn
+        container;
+        // Date.now() at which the drawing started
+        timeDrawn;
+        // boolean to indicate the circle is being removed
+        isEnding = false;
+
+        constructor(container) {
+            this.container = container;
+
+            container.append("path")
+                .attr("d", this.arc());
+
+            this.timeDrawn = Date.now();
+            this.draw();
+        }
+
+        // Returns true if finished drawing
+        draw() {
+            const speedAnimation = 500;
+            let angle = (Date.now() - this.timeDrawn)/speedAnimation;
+
+            if(!this.isEnding) {
+                this.arc.endAngle(angle);
+            } else {
+                this.arc.startAngle(angle);
+            }
+            this.container.select("path")
+                .attr("d", this.arc());
+
+            return angle > Math.PI*2 + 0.2;
+        }
+
+        undrawCircle() {
+            this.timeDrawn = Date.now();
+            this.isEnding = true;
+        }
+
+        removeCircle() {
+            this.container.remove();
+        }
+
+    }
+
+    // Set up the base on which the animation will be drawn
+    const baseTranslate = 'translate(' + Svg.width/2 + ',' + Svg.height/2 + ')';
+    let base = Svg.svg.append('g')
+        .attr('transform', baseTranslate);
+
+    let toDraw = [];
+    let finishedDrawing = [];
+
+    // the time at which the next circle should be drawn
+    let nextDraw = 0;
+    d3.timer(function(elapsed) {
+
+        if(elapsed > nextDraw) {
+            let xShift = (Math.random()*(Svg.width - Circle.radius*2)) - Svg.width/2 + Circle.radius;
+            let yShift = (Math.random()*(Svg.height - Circle.radius*2)) - Svg.height/2 + Circle.radius;
+            let container = base.append('g')
+                                .attr('transform', 'translate(' + xShift + ',' + yShift + ')');
+
+            toDraw.push(new Circle(container));
+
+            const timestep = 500;
+            nextDraw = nextDraw + timestep;
+        }
+
+        // update the currently active circles
+        let isDone = [];
+        for(let i = 0; i < toDraw.length; i++) {
+            if(toDraw[i].draw()) {
+                isDone.push(toDraw[i]);
+            }
+        }
+
+        // stop drawing any that have finished
+        for(let i = isDone.length - 1; i >= 0; i--) {
+            let circle = toDraw.splice(toDraw.indexOf(isDone[i])[i],1)[0];
+
+            // If the circle has been undrawn, don't add it to the finished circles just remove it
+            if(circle.isEnding) {
+                circle.removeCircle();
+            } else {
+                finishedDrawing.push(circle);
+            }
+        }
+
+        // remove the finished circles if there are too many of them
+        const maxDone = 5;
+        if(finishedDrawing.length > maxDone) {
+            let circle = finishedDrawing.splice(0,1)[0];
+            circle.undrawCircle();
+            toDraw.push(circle);
+        }
+    });
+
+
+</script>
+</body>
+</html>
