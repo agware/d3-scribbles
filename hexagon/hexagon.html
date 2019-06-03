@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+
+<svg width="960" height="500" overflow="hidden"></svg>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="Hexagons.js"></script>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script>
+
+    // Set up the base on which the animation will be drawn
+    const svg = {width: 960, height: 500};
+    const translate = 'translate(' + svg.width/2 + ',' + svg.height/2 + ')';
+    let g = d3.select('svg').append('g')
+        .attr('transform', translate);
+
+    const sideLength = 200;
+    const numHexagons = 5;
+    let hexagons = new Hexagons(g, sideLength, numHexagons);
+
+    // Run the animation
+    d3.timer(function(elapsed) {
+        const factor = 25;
+        let shift = elapsed/factor;
+        g.attr('transform', translate + 'rotate(' + shift + ')');
+        hexagons.shiftHexagons(shift);
+    })
+
+
+</script>

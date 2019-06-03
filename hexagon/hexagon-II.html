@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+
+<svg width="960" height="500" overflow="hidden"></svg>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="Hexagons.js"></script>
+<script>
+
+    // Set up the base on which the animation will be drawn
+    const svg = {width: 960, height: 500};
+    const baseTranslate = 'translate(' + svg.width/2 + ',' + svg.height/2 + ')';
+    let base = d3.select('svg')
+        .append('g')
+        .attr('transform', baseTranslate);
+
+
+    function generateContainers(base, sideLength) {
+        let containers = [];
+        containers.push(base.append('g'));
+        containers.push(base.append('g')
+            .attr('transform', 'rotate(30)'));
+
+        // inner circle
+        for(let i = 0; i < 6; i++) {
+            let degrees = 60*i;
+            // inner circle
+            containers.push(
+                base.append('g')
+                    .attr('transform', 'rotate(' + degrees + ') translate(' + sideLength*2 + ',0)')
+            );
+            containers.push(
+                base.append('g')
+                    .attr('transform', 'rotate(' + degrees + ') translate(' + sideLength*2 + ',0) rotate(30)')
+            )
+        }
+
+        return containers;
+    }
+
+    // Set up the g for each set of hexagons
+    const sideLength = 180;
+    let containers = generateContainers(base, sideLength);
+
+    const numHexagons = 6;
+    let hexagons = [];
+    for(let i = 0; i < containers.length; i++) {
+        hexagons.push(new Hexagons(containers[i], sideLength, numHexagons));
+    }
+
+    // Run the animation
+    d3.timer(function(elapsed) {
+        const factor = 30;
+        let shift = elapsed/factor;
+        base.attr('transform', baseTranslate + 'rotate(' + shift + ')');
+        for(let i = 0; i < hexagons.length; i++) {
+            hexagons[i].shiftHexagons(shift);
+        }
+    })
+
+</script>

@@ -1,0 +1,62 @@
+<!DOCTYPE HTML>
+<meta charset="UTF-8">
+
+<svg width="960" height="500" overflow="hidden"></svg>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="Circle.js"></script>
+<script>
+    // Set up the base on which the animation will be drawn
+    const svg = {width: 960, height: 500};
+    const baseTranslate = 'translate(' + svg.width/2 + ',' + svg.height/2 + ')';
+    let base = d3.select('svg').append('g')
+        .attr('transform', baseTranslate);
+
+    let toDraw = [];
+    let finishedDrawing = [];
+
+    // the time at which the next circle should be drawn
+    let nextDraw = 0;
+    d3.timer(function(elapsed) {
+
+        // add a new circle
+        if(elapsed > nextDraw) {
+            let xShift = (Math.random()*(svg.width - Circle.radius*2)) - svg.width/2 + Circle.radius;
+            let yShift = (Math.random()*(svg.height - Circle.radius*2)) - svg.height/2 + Circle.radius;
+            let container = base.append('g')
+                .attr('transform', 'translate(' + xShift + ',' + yShift + ')');
+
+            toDraw.push(new Circle(container));
+
+            const timeStep = 500;
+            nextDraw = nextDraw + timeStep;
+        }
+
+        // update the currently active circles
+        let isDone = [];
+        for(let i = 0; i < toDraw.length; i++) {
+            if(toDraw[i].draw()) {
+                isDone.push(toDraw[i]);
+            }
+        }
+
+        // stop drawing any that have finished
+        for(let i = isDone.length - 1; i >= 0; i--) {
+            let circle = toDraw.splice(toDraw.indexOf(isDone[i])[i],1)[0];
+
+            // If the circle has been undrawn, don't add it to the finished circles just remove it
+            if(circle.isEnding) {
+                circle.removeCircle();
+            } else {
+                finishedDrawing.push(circle);
+            }
+        }
+
+        // remove the finished circles if there are too many of them
+        const maxDone = 5;
+        if(finishedDrawing.length > maxDone) {
+            let circle = finishedDrawing.splice(0,1)[0];
+            circle.undrawCircle();
+            toDraw.push(circle);
+        }
+    });
+</script>
