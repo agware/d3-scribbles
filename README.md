@@ -2,6 +2,8 @@
 
 The various animations can be found at:
 
-* [circles](http://bl.ocks.org/agware/e11310438d53609e86a006f2d8770dbc)
+* [circles](https://agware.github.io/d3-scribbles/circles/)
 
-* [hexagon](https://bl.ocks.org/agware/4f818714d50e5381cd10b9fc0179e1a5)
+* [hexagon](https://agware.github.io/d3-scribbles/hexagon/)
+
+* [tiles](https://agware.github.io/d3-scribbles/tiles/)
