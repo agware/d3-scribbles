@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<head>
+<meta charset="utf-8">
+<style>
+    path {
+        fill: #64C7FF;
+    }
+</style>
+</head>
+<body>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script>
+    
+    ///////////////////////////
+    ////////// SETUP //////////
+    ///////////////////////////
+
+    const margin = { top: 50, right: 50, bottom: 50, left: 50 };
+    const height = 500 - margin.top - margin.bottom;
+    const width = 960 - margin.left - margin.right;
+
+    let svg = d3.select('body').append('svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom);
+    let base = svg.append('g')
+        .attr('transform', 'translate(' + (width/2 + margin.right) + ',' + 
+            (height/2 + margin.top) + ')');
+
+    //////////////////////////
+    ////////// DATA //////////
+    //////////////////////////
+
+    let sideLength = 200;
+    const angle = Math.PI/3;
+    const yShift = sideLength*Math.sin(angle);
+    points = [
+        {x: sideLength/2, y: -yShift},
+        {x: sideLength, y: 0},
+        {x: sideLength/2, y: yShift},
+        {x: -sideLength/2, y: yShift},
+        {x: -sideLength, y: 0},
+        {x: -sideLength/2, y: -yShift}
+    ];
+
+    //////////////////////////
+    ////////// DRAW //////////
+    //////////////////////////
+
+    lineFunction = d3.line()
+        .curve(d3.curveLinear)
+        .x(function(d) { return d.x; })
+        .y(function(d) { return d.y; });
+
+    path = base.append('path')
+        .attr('d', lineFunction(points))
+        .each(rotate);
+
+    function rotate() {
+        let point = points.shift();
+        points.push(point);
+        
+        d3.select(this).transition().duration(2000).delay(500)
+            .attr('d', lineFunction(points))
+            .on('end', rotate);
+    }
+    
+    </script>
+</body>
