@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<head>
+<meta charset="utf-8">
+<style>
+    #container {
+        width: 100%;
+        height: 100%;
+    }
+
+    path {
+        fill: black;
+    }
+</style>
+</head>
+<body>
+
+    <div id="container"></div>
+
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script>
+    
+    const margin = { top: 50, right: 50, bottom: 50, left: 50 };
+    const height = Math.max(500, window.innerHeight - margin.top - margin.bottom);
+    const width = Math.max(height, window.innerWidth - margin.left - margin.right);
+
+    let svg = d3.select('#container').append('svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom);
+    let base = svg.append('g')
+        .attr('transform', 'translate(' + margin.right + ',' + margin.top + ')');
+
+    const tau = 2 * Math.PI;
+    let xScale = d3.scaleLinear().domain([0,1]).range([0,width]);
+    let yScale = d3.scaleLinear().domain([0,1]).range([0,height]);
+
+    let arc = d3.arc()
+        .innerRadius(30)
+        .outerRadius(35)
+        .startAngle(0);
+
+    let active = 10;
+    let data = d3.range(10).map(() => {return {endAngle: 0}});
+
+    base.selectAll('path').data(data)
+        .enter().append('path')
+            .attr('d', arc)
+            .attr('transform', d => 'translate(' + xScale(Math.random()) + ',' + yScale(Math.random()) + ')')
+                .transition().duration(1000).delay((d,i) => Math.random()*300 + i*300)
+                .attrTween('d', arcTween(tau))
+                .on('end', remove);
+    
+    function add() {
+        d3.select(this)
+            .attr('transform', 'translate(' + xScale(Math.random()) + ',' + yScale(Math.random()) + ')')
+            .transition().duration(1000)
+            .attrTween('d', arcTween(tau))
+            .on('end', remove);
+    }
+
+    function remove() {
+        d3.select(this).transition().duration(1000).delay(500)
+            .attrTween('d', arcTween(0))
+            .on('end', add);
+    }
+
+    function arcTween(newAngle) {
+        return function (d) {
+            let interpolate = d3.interpolate(d.endAngle, newAngle);
+            return function (t) {
+                d.endAngle = interpolate(t);
+                return arc(d);
+            };
+        };
+    }
+
+    </script>
+</body>
