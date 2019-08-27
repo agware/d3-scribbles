@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "target": "es6",
+        "module": "system",
+        "outFile": "out.js"
+    },
+    "files": [
+        "shapes.ts",
+        "instructions.ts",
+        "main.ts"
+    ]
+}
