@@ -2,6 +2,6 @@
 
 The various animations can be found at:
 
-* [hexagons](https://bl.ocks.org/agware/d50d52173fd07c3981c0153d60a8254f)
+* [circles](http://bl.ocks.org/agware/e11310438d53609e86a006f2d8770dbc)
 
-* [hexagons-II](https://bl.ocks.org/agware/a37618dc800b6da44a3a1c6495e897a9)
+* [hexagon](https://bl.ocks.org/agware/4f818714d50e5381cd10b9fc0179e1a5)
